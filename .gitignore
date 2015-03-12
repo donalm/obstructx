@@ -51,3 +51,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Twisted
+twistd.pid
+
+# Vim
+.*.swp
