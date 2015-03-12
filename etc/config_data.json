@@ -9,7 +9,9 @@
         }
     },
     "log": {
-        "path": ["/var/log/{appname}/{appname}.log",
+        "level": "DEBUG",
+        "paths": ["/var/log/{appname}/{appname}.log",
                  "/tmp/{appname}/{appname}.log"]
-    }
+    },
+    "appname": "obstructx"
 }
