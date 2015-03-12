@@ -1,0 +1,15 @@
+{
+    "database": {
+        "booktown": {
+            "port": 5432,
+            "host": "127.0.0.1",
+            "password": "booktown",
+            "user": "booktown",
+            "database": "booktown"
+        }
+    },
+    "log": {
+        "path": ["/var/log/{appname}/{appname}.log",
+                 "/tmp/{appname}/{appname}.log"]
+    }
+}
