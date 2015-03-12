@@ -20,6 +20,7 @@ except Exception, e:
 import psycopg2
 import psycopg2.extras
 from txpostgres import txpostgres
+from txpostgres.reconnection import DeadConnectionDetector
 from twisted.python.modules import getModule
 from twisted.python import util
 from twisted.internet import reactor, task, defer
@@ -31,18 +32,41 @@ def get_database_credentials():
     return json.loads(basedir.child("etc").child("database_credentials.json").getContent())
 
 
-class Pool(txpostgres.ConnectionPool):
+def Pool(appname):
+    return PoolFactory.get(appname)
+
+
+class PoolFactory(object):
+    pools = {}
+    @classmethod
+    def get(cls, appname):
+        if not appname in cls.pools:
+            cls.pools[appname] = _Pool(appname)
+        return cls.pools[appname]
+
+class _Pool(txpostgres.ConnectionPool):
 
     def __init__(self, appname):
         credentials = get_database_credentials()
         app_credentials = credentials[appname]
         args = tuple()
+
+        def connection_factory(self, *args, **kwargs):
+            kwargs['detector'] = DeadConnectionDetector()
+            return txpostgres.Connection(*args, **kwargs)
+
+        txpostgres.ConnectionPool.connectionFactory = connection_factory
         txpostgres.ConnectionPool.__init__(self,
                                            None,
                                            *args,
                                            connection_factory=psycopg2.extras.NamedTupleConnection,
                                            **app_credentials)
 
+
+class BookTown(object):
+
+    def __init__(self):
+        pass
 
 def go(result, pool):
     query = """
@@ -61,10 +85,8 @@ def dumpres(result):
     return result
 
 
-
 def main(reactor):
     print("MAIN %s" % (reactor,))
-
 
     pool = Pool("booktown")
     df = pool.start()
@@ -73,8 +95,5 @@ def main(reactor):
     return df
 
 
-
-
 if __name__ == "__main__":
     task.react(main)
-
