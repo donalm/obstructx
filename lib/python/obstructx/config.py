@@ -15,14 +15,15 @@ class Config(object):
     data = {}
 
     @classmethod
-    def init(cls):
-        if cls.data:
+    def init(cls, appname):
+        if cls.data.get(appname):
             return
 
-        cls.refresh()
+        cls.refresh(appname)
+        return None
 
     @classmethod
-    def refresh(cls):
+    def refresh(cls, appname):
         """
         Go back to the filesystem and re-read the config file
         """
@@ -36,16 +37,16 @@ class Config(object):
         json_config_file = os.path.join(basedir, "etc/config_data.json")
         fh = open(json_config_file, 'r')
         try:
-            cls.data = json.load(fh)
+            cls.data[appname] = json.load(fh)
         except Exception, e:
             raise
         finally:
             fh.close()
 
     @classmethod
-    def get(cls, key):
-        cls.init()
-        return cls.data.get(key)
+    def get(cls, appname, key):
+        cls.init(appname)
+        return cls.data.get(appname, {}).get(key)
 
 
 if __name__ == '__main__':
