@@ -8,12 +8,15 @@ import logging
 
 def get_logger(appname):
     config = Config()
-    log_config         = config.get("log")
+    log_config         = config.get(appname, "log")
     log_level          = log_config.get("level")
     log_path_templates = log_config.get("paths")
     log_path           = get_log_path(appname, log_path_templates)
 
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s : %(message)s    [%(process)d:%(pathname)s:%(lineno)d]')
+
     trfh = TimedRotatingFileHandler(log_path, when='D', interval=1, backupCount=5, encoding='utf-8')
+    trfh.setFormatter(formatter)
     logger = logging.getLogger(appname)
     logger.addHandler(trfh)
     logger.error("trfh")
