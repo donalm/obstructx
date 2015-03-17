@@ -1,32 +1,24 @@
 #!/usr/bin/env python
 
-from obstructx.log import get_logger
 from twisted.application import internet, service
 from twisted.python import log
 from twisted.web import server
 from twisted.web import resource
 from twisted.internet import reactor
 
+from obstructx import config
+from obstructx.log import get_logger
+from obstructx.web import index
 
 appname = "obstructx"
-
-class Root(resource.Resource):
-    def render_GET(self, request):
-        print("render_GET")
-        return "<html>Hello, world!</html>"
-
-    def getChild(self, name, request):
-        print("getChild: %s %s" % (name, request,))
-        if name == "":
-            return self
-        return resource.Resource.getChild(self, name, request)
+config.Config.init(appname)
 
 class Simple(resource.Resource):
     #isLeaf = True
     def render_GET(self, request):
-        return "<html>Hello, world 2!</html>"
+        return "<html>Hello, world 2!: %s</html>" % (request.path,)
 
-root = Root()
+root = index.Root()
 root.putChild("hoops", Simple())
 
 logger = get_logger(appname)
