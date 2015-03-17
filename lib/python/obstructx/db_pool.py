@@ -47,6 +47,7 @@ class PoolFactory(object):
 class _Pool(txpostgres.ConnectionPool):
 
     def __init__(self, appname):
+        self.status_df = None
         credentials = get_database_credentials()
         app_credentials = credentials[appname]
         args = tuple()
@@ -61,6 +62,12 @@ class _Pool(txpostgres.ConnectionPool):
                                            *args,
                                            connection_factory=psycopg2.extras.NamedTupleConnection,
                                            **app_credentials)
+
+    def start(self):
+        if not self.status_df:
+            self.status_df = txpostgres.ConnectionPool.start(self)
+
+        return self.status_df
 
 
 class BookTown(object):
