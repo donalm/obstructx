@@ -56,7 +56,7 @@ SELECT "table",
   GROUP BY "table",
            "foreign table"
 """
-queries["list_table_fields"] = """
+queries["list_table_columns"] = """
 SELECT
     table_name,
     column_name,
@@ -70,7 +70,7 @@ SELECT
 FROM
     information_schema.columns
 WHERE
-    table_name = '%s';
+    table_name = %s;
 """
 
 queries["list_table_indexes"] = """
@@ -90,7 +90,7 @@ where
     and a.attrelid = t.oid
     and a.attnum = ANY(ix.indkey)
     and t.relkind = 'r'
-    and t.relname = '%s'
+    and t.relname = %s
 group by
     t.relname,
     i.relname,
