@@ -6,12 +6,16 @@ from twisted.web import server
 from twisted.web import resource
 from twisted.internet import reactor
 
+appname = "obstructx"
 from obstructx import config
+config.Config.init(appname)
+
 from obstructx.log import get_logger
+logger = get_logger(appname)
+logger.error("WOAH")
+
 from obstructx.web import index
 
-appname = "obstructx"
-config.Config.init(appname)
 
 class Simple(resource.Resource):
     #isLeaf = True
@@ -21,7 +25,6 @@ class Simple(resource.Resource):
 root = index.Root()
 root.putChild("hoops", Simple())
 
-logger = get_logger(appname)
 logger.error("TEST - TAC FILE")
 
 observer = log.PythonLoggingObserver(loggerName=appname)
