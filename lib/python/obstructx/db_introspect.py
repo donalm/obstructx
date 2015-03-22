@@ -61,16 +61,19 @@ SELECT
     table_name,
     column_name,
     column_default,
-    character_maximum_length,
-    numeric_precision,
-    numeric_precision_radix,
-    numeric_scale,
+    -- character_maximum_length,
+    -- numeric_precision,
+    -- numeric_precision_radix,
+    -- numeric_scale,
     data_type,
     is_nullable
 FROM
     information_schema.columns
 WHERE
-    table_name = %s;
+    table_schema = 'public'
+ORDER BY
+    table_name,
+    ordinal_position
 """
 
 queries["list_table_indexes"] = """
