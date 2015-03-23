@@ -12,6 +12,7 @@ WHERE
 
 queries["list_tables"] = """
 SELECT
+    table_catalog,
     table_name
 FROM
     information_schema.tables
@@ -56,8 +57,29 @@ SELECT "table",
   GROUP BY "table",
            "foreign table"
 """
+
+queries["list_foreign_keys"] = """
+SELECT
+    tc.constraint_catalog as database_name,
+    tc.constraint_name,
+    tc.table_name,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+FROM
+    information_schema.table_constraints AS tc,
+    information_schema.key_column_usage AS kcu,
+    information_schema.constraint_column_usage AS ccu
+WHERE
+    constraint_type = 'FOREIGN KEY' AND
+    tc.constraint_name = kcu.constraint_name AND
+    ccu.constraint_name = tc.constraint_name AND
+    tc.table_name = %s
+"""
+
 queries["list_table_columns"] = """
 SELECT
+    table_catalog,
     table_name,
     column_name,
     column_default,
@@ -70,13 +92,14 @@ SELECT
 FROM
     information_schema.columns
 WHERE
-    table_schema = 'public'
+    table_schema = 'public' AND
+    table_name = %s
 ORDER BY
     table_name,
     ordinal_position
 """
 
-queries["list_table_indexes"] = """
+queries["list_table_indices"] = """
 select
     t.relname as table_name,
     i.relname as index_name,
