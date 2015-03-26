@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import json
+
+from collections import OrderedDict
+
 from twisted.internet import reactor
 from twisted.internet import defer
 
@@ -8,30 +12,60 @@ from obstructx import db_pool
 from obstructx import log
 
 logger = log.get_logger()
+logger.error("TEST")
 
 class DbMethods(object):
     def extract_first(self, results):
         return [result[0] for result in results]
 
-class Inquisitor(DbMethods):
+    def query_first(self, query, queryargs=None):
+        if queryargs is None:
+            queryargs = ()
+        df = self.pool.runQuery(query, queryargs)
+        df.addCallback(lambda x: x[0])
+        return df
 
-    def initialize_pool(self):
+class Inquisitor(DbMethods):
+    data = {'localhost':{5432:{}}}
+
+    def initialize_pool(self, database):
         logger.error("initialize_pool")
-        self.pool = db_pool.Pool("booktown")
+
+        Inquisitor.data['localhost'][5432][database] = {}
+        self.pool = db_pool.Pool(database)
         df = self.pool.start()
+        return df
+
+    def get_database_metadata(self, database):
+        df = self.initialize_pool(database)
+        df.addCallback(self.get_tables)
         return df
 
     def get_tables(self, *args):
         logger.error("get_tables")
         query = db_introspect.queries["list_tables"]
-        df.addCallback(self.extract_first)
-        return self.pool.runQuery(query)
+        df = self.pool.runQuery(query)
+        df.addCallback(self.parse_tables)
+        return df
 
     def parse_tables(self, tables):
         dfs = []
         for table in tables:
-            dfs.append(self.get_columns, table)
-        return defer.DeferredList(dfs)
+            database = table.table_catalog
+            table = table.table_name
+            Inquisitor.data['localhost'][5432][database][table] = {"fields":OrderedDict(), "indices":OrderedDict()}
+            df = self.get_columns(table)
+            df.addCallback(self.show_columns)
+            df.addCallback(self.get_foreign_keys)
+            df.addCallback(self.get_indices)
+            df.addCallback(self.parse_indices)
+            dfs.append(df)
+
+        dfl = defer.DeferredList(dfs)
+        #dfl.addCallback(self.get_foreign_keys)
+        #dfl.addCallback(self.parse_foreign_keys)
+        return dfl
+
 
     def get_databases(self, *args):
         logger.error("get_databses")
@@ -45,11 +79,31 @@ class Inquisitor(DbMethods):
         query = db_introspect.queries["list_table_columns"]
         return self.pool.runQuery(query, (table,))
 
-    def get_foreign_keys(self, *args):
+    def get_indices(self, table, *args):
+        logger.error("get_indices: %s" % (table,))
+        query = db_introspect.queries["list_table_indices"]
+        df = self.pool.runQuery(query, (table,))
+        return df
+
+    def parse_indices(self, results):
+        #print("parse_indices: %s" % results,)
+        for result in results:
+            leader = result.column_names[0]
+            database_name = "booktown"
+            Inquisitor.data['localhost'][5432][database_name][result.table_name]["fields"][leader]["leads_index"] = True
+
+    def get_foreign_keys(self, table, *args):
         logger.error("get_foreign_keys")
         query = db_introspect.queries["list_foreign_keys"]
-        df = self.pool.runQuery(query)
+        df = self.pool.runQuery(query, (table,))
+        df.addCallback(self.parse_foreign_keys, table)
         return df
+
+    def parse_foreign_keys(self, results, table_name):
+        for result in results:
+            Inquisitor.data['localhost'][5432][result.database_name][result.table_name]["fields"][result.column_name]["references_foreign_key"] = (result.foreign_table_name, result.foreign_column_name,)
+            Inquisitor.data['localhost'][5432][result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"] = (result.table_name, result.column_name,)
+        return table_name
 
     def show_result(self, result):
         if isinstance(result, basestring):
@@ -58,15 +112,20 @@ class Inquisitor(DbMethods):
         for item in result:
             print("-- %s" % (item,))
 
-def main():
-    i = Inquisitor()
-    df = i.initialize_pool()
-    df.addCallback(i.get_tables)
-    df.addCallback(i.parse_tables)
-    df.addCallback(i.show_result)
-    #df.addCallback(i.get_tables)
-    #df.addCallback(i.show_result)
+    def show_columns(self, results):
+        database = results[0].table_catalog
+        table    = results[0].table_name
+        nullable = {"YES":True, "NO":False}
+        for column in results:
+            val = {}
+            val['name'] = column.column_name
+            val['type'] = column.data_type
+            val['nullable'] = nullable[column.is_nullable]
+            val['default'] = column.column_default
+            val['references_foreign_key'] = None
+            val['referenced_by_foreign_key'] = None
+            val['leads_index'] = False
+            Inquisitor.data['localhost'][5432][database][table]["fields"][column.column_name] = val
 
+        return table
 
-if __name__ == '__main__':
-    main()
