@@ -70,7 +70,19 @@ class _Pool(txpostgres.ConnectionPool):
         if not self.status_df:
             self.status_df = txpostgres.ConnectionPool.start(self)
 
-        return self.status_df
+        """
+        Everyone who calls 'start' gets their own deferred
+        Probably not important, but it makes the code more
+        predictable
+        """
+        df = defer.Deferred()
+
+        def cb(result):
+            df.callback(result)
+            return result
+
+        self.status_df.addCallback(cb)
+        return df
 
 
 class BookTown(object):
