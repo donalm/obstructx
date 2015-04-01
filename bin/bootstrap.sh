@@ -7,6 +7,7 @@ basedir=`dirname $bindir_abs`
 scriptname=`basename $0`
 
 export PYTHONPATH="$basedir/lib/python"
+export PYTHONDONTWRITEBYTECODE=1
 
 
 exec $bindir_abs/$scriptname.py $@
