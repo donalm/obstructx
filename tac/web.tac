@@ -8,11 +8,10 @@ from twisted.internet import reactor
 
 appname = "obstructx"
 from obstructx import config
-config.Config.init(appname)
+config.Config.init()
 
 from obstructx.log import get_logger
 logger = get_logger(appname)
-logger.error("WOAH")
 
 from obstructx.web import index
 
@@ -24,8 +23,6 @@ class Simple(resource.Resource):
 
 root = index.Root()
 root.putChild("hoops", Simple())
-
-logger.error("TEST - TAC FILE")
 
 observer = log.PythonLoggingObserver(loggerName=appname)
 application = service.Application(appname)
