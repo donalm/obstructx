@@ -29,30 +29,30 @@ from twisted.python import util
 from twisted.internet import reactor, task, defer
 
 
-def get_database_credentials(appname):
+def get_database_credentials(database_name):
     filepath = getModule(__name__).filePath
     basedir = filepath.parent().parent().parent().parent()
-    return json.loads(basedir.child("etc").child("database_credentials_%s.json" % (appname,)).getContent())
+    return json.loads(basedir.child("etc").child("database_credentials_%s.json" % (database_name,)).getContent())
 
 
-def Pool(appname):
-    return PoolFactory.get(appname)
+def Pool(database_name):
+    return PoolFactory.get(database_name)
 
 
 class PoolFactory(object):
     pools = {}
     @classmethod
-    def get(cls, appname):
-        if not appname in cls.pools:
-            cls.pools[appname] = _Pool(appname)
-        return cls.pools[appname]
+    def get(cls, database_name):
+        if not database_name in cls.pools:
+            cls.pools[database_name] = _Pool(database_name)
+        return cls.pools[database_name]
 
 class _Pool(txpostgres.ConnectionPool):
 
-    def __init__(self, appname):
+    def __init__(self, database_name):
         self.status_df = None
-        credentials = get_database_credentials(appname)
-        app_credentials = credentials[appname]
+        credentials = get_database_credentials(database_name)
+        app_credentials = credentials
         args = tuple()
 
         def connection_factory(self, *args, **kwargs):
