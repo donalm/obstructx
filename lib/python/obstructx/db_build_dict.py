@@ -26,18 +26,21 @@ class DbMethods(object):
         return df
 
 class Inquisitor(DbMethods):
-    data = {'localhost':{5432:{}}}
+    data = {}
 
-    def initialize_pool(self, database):
+    def __init__(self, database_name):
+        self.database_name = database_name
+
+    def initialize_pool(self):
         logger.error("initialize_pool")
 
-        Inquisitor.data['localhost'][5432][database] = {}
-        self.pool = db_pool.Pool(database)
+        Inquisitor.data[self.database_name] = {}
+        self.pool = db_pool.Pool(self.database_name)
         df = self.pool.start()
         return df
 
-    def get_database_metadata(self, database):
-        df = self.initialize_pool(database)
+    def get_database_metadata(self):
+        df = self.initialize_pool()
         df.addCallback(self.get_tables)
         return df
 
@@ -53,7 +56,7 @@ class Inquisitor(DbMethods):
         for table in tables:
             database = table.table_catalog
             table = table.table_name
-            Inquisitor.data['localhost'][5432][database][table] = {"fields":OrderedDict(), "indices":OrderedDict()}
+            Inquisitor.data[database][table] = {"fields":OrderedDict(), "indices":OrderedDict()}
             df = self.get_columns(table)
             df.addCallback(self.show_columns)
             df.addCallback(self.get_foreign_keys)
@@ -89,8 +92,7 @@ class Inquisitor(DbMethods):
         #print("parse_indices: %s" % results,)
         for result in results:
             leader = result.column_names[0]
-            database_name = "booktown"
-            Inquisitor.data['localhost'][5432][database_name][result.table_name]["fields"][leader]["leads_index"] = True
+            Inquisitor.data[self.database_name][result.table_name]["fields"][leader]["leads_index"] = True
 
     def get_foreign_keys(self, table, *args):
         logger.error("get_foreign_keys")
@@ -101,8 +103,8 @@ class Inquisitor(DbMethods):
 
     def parse_foreign_keys(self, results, table_name):
         for result in results:
-            Inquisitor.data['localhost'][5432][result.database_name][result.table_name]["fields"][result.column_name]["references_foreign_key"] = (result.foreign_table_name, result.foreign_column_name,)
-            Inquisitor.data['localhost'][5432][result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"] = (result.table_name, result.column_name,)
+            Inquisitor.data[result.database_name][result.table_name]["fields"][result.column_name]["references_foreign_key"] = (result.foreign_table_name, result.foreign_column_name,)
+            Inquisitor.data[result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"] = (result.table_name, result.column_name,)
         return table_name
 
     def show_result(self, result):
@@ -113,8 +115,8 @@ class Inquisitor(DbMethods):
             print("-- %s" % (item,))
 
     def show_columns(self, results):
-        database = results[0].table_catalog
-        table    = results[0].table_name
+        database_name = results[0].table_catalog
+        table = results[0].table_name
         nullable = {"YES":True, "NO":False}
         for column in results:
             val = {}
@@ -125,7 +127,7 @@ class Inquisitor(DbMethods):
             val['references_foreign_key'] = None
             val['referenced_by_foreign_key'] = None
             val['leads_index'] = False
-            Inquisitor.data['localhost'][5432][database][table]["fields"][column.column_name] = val
+            Inquisitor.data[database_name][table]["fields"][column.column_name] = val
 
         return table
 
