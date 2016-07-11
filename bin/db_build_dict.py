@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 appname = "obstructx"
 from obstructx import config
-config.Config.init(appname)
+config.Config.init()
 
 from obstructx.log import get_logger
 logger = get_logger(appname)
@@ -16,8 +16,6 @@ logger.error("OBSTRUCTX DATABASE SCHEMA TRAWLER")
 from twisted.internet import reactor
 from twisted.internet import defer
 
-from obstructx import db_introspect
-from obstructx import db_pool
 from obstructx import log
 from obstructx import db_build_dict
 
@@ -29,15 +27,15 @@ def eb(f):
 
 def stop(x):
     reactor.stop()
-    data = json.dumps(db_build_dict.Inquisitor.data, indent=4)
+    data = json.dumps(db_build_dict.Inquisitor.data[sys.argv[-1]], indent=4)
     print(data)
     fh = open("/tmp/database.json", "w")
     fh.write(data)
     fh.close()
 
 def main():
-    inquisitor = db_build_dict.Inquisitor()
-    df = inquisitor.get_database_metadata(sys.argv[-1])
+    inquisitor = db_build_dict.Inquisitor(sys.argv[-1])
+    df = inquisitor.get_database_metadata()
     df.addErrback(eb)
     df.addBoth(stop)
 
