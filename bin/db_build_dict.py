@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import json
 from twisted.python import log
 from collections import OrderedDict
@@ -36,7 +37,7 @@ def stop(x):
 
 def main():
     inquisitor = db_build_dict.Inquisitor()
-    df = inquisitor.get_database_metadata('booktown')
+    df = inquisitor.get_database_metadata(sys.argv[-1])
     df.addErrback(eb)
     df.addBoth(stop)
 
