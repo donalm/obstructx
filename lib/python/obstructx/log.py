@@ -18,7 +18,7 @@ class AppLogger(object):
             return cls.logger
 
         config = Config()
-        log_config         = config.get(appname, "log")
+        log_config         = config.get("log")
         log_level          = log_config.get("level")
         log_path_templates = log_config.get("paths")
         log_path           = get_log_path(appname, log_path_templates)
@@ -29,7 +29,7 @@ class AppLogger(object):
         trfh.setFormatter(formatter)
         cls.logger = logging.getLogger(appname)
         cls.logger.addHandler(trfh)
-        cls.logger.error("trfh")
+        cls.logger.error("Logger is ready")
         cls.logger.setLevel(logging.DEBUG)
         return cls.logger
 
