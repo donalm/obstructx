@@ -29,10 +29,10 @@ from twisted.python import util
 from twisted.internet import reactor, task, defer
 
 
-def get_database_credentials():
+def get_database_credentials(appname):
     filepath = getModule(__name__).filePath
     basedir = filepath.parent().parent().parent().parent()
-    return json.loads(basedir.child("etc").child("database_credentials.json").getContent())
+    return json.loads(basedir.child("etc").child("database_credentials_%s.json" % (appname,)).getContent())
 
 
 def Pool(appname):
@@ -51,7 +51,7 @@ class _Pool(txpostgres.ConnectionPool):
 
     def __init__(self, appname):
         self.status_df = None
-        credentials = get_database_credentials()
+        credentials = get_database_credentials(appname)
         app_credentials = credentials[appname]
         args = tuple()
 
