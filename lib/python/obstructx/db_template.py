@@ -7,8 +7,6 @@ from twisted.python import log
 from collections import OrderedDict
 
 appname = "obstructx"
-from obstructx import config
-config.Config.init(appname)
 
 from obstructx.log import get_logger
 logger = get_logger(appname)
