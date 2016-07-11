@@ -9,6 +9,7 @@ import os
 import json
 from twisted.python.modules import getModule
 
+BASEDIR=os.environ.get("BASEDIR")
 
 
 class Config(object):
@@ -24,17 +25,8 @@ class Config(object):
 
     @classmethod
     def refresh(cls, appname):
-        """
-        Go back to the filesystem and re-read the config file
-        """
-        try:
-            filepath = getModule(__name__).filePath
-            basedir = filepath.parent().parent().parent().parent().path
-        except Exception, e:
-            print("Failed to get project basedir: %s" % (e,))
-            raise
-
-        json_config_file = os.path.join(basedir, "etc/config_data.json")
+        json_config_file = os.path.join(BASEDIR, "etc/config_data.json")
+        print(json_config_file)
         fh = open(json_config_file, 'r')
         try:
             cls.data[appname] = json.load(fh)
