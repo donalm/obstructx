@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+bin_directory=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+export BASEDIR=$(dirname $bin_directory)
+
 bootstrap_script=${(%):-%N}
 bindir=`dirname $bootstrap_script`
 bindir_abs=`cd $bindir && pwd`
