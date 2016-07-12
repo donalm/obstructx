@@ -12,5 +12,4 @@ scriptname=`basename $0`
 export PYTHONPATH="$basedir"
 export PYTHONDONTWRITEBYTECODE=1
 
-
 exec $bindir_abs/$scriptname.py $@
