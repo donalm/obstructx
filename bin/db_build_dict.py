@@ -2,6 +2,7 @@
 
 import sys
 import json
+import argparse
 from twisted.python import log
 from collections import OrderedDict
 
@@ -25,21 +26,33 @@ logger = log.get_logger()
 def eb(f):
     logger.error(f.getBriefTraceback())
 
-def stop(x):
+def stop(x, database_name, json_filename):
     reactor.stop()
-    data = json.dumps(db_build_dict.Inquisitor.data[sys.argv[-1]], indent=4)
-    print(data)
-    fh = open("/tmp/database.json", "w")
+    data = json.dumps(db_build_dict.Inquisitor.data[database_name], indent=4, sort_keys=True)
+    fh = open(json_filename, "w")
     fh.write(data)
     fh.close()
+    print("JSON file created at " + json_filename)
 
-def main():
-    inquisitor = db_build_dict.Inquisitor(sys.argv[-1])
+def main(database_name, json_filename):
+    inquisitor = db_build_dict.Inquisitor(database_name)
     df = inquisitor.get_database_metadata()
     df.addErrback(eb)
-    df.addBoth(stop)
+    df.addBoth(stop, database_name, json_filename)
 
 
 if __name__ == '__main__':
-    reactor.callWhenRunning(main)
+    parser = argparse.ArgumentParser(
+            description='Parse a PostgreSQL database schema into JSON.',
+            usage="db_build_dict [-h] DATABASE"
+        )
+    parser.add_argument('database_name', metavar="DATABASE", type=str,
+                        help='The name of the database')
+
+    parser.add_argument('json_filename', metavar="FILEPATH", type=str,
+                        help='A path to write the JSON file')
+
+    args = parser.parse_args()
+
+    reactor.callWhenRunning(main, args.database_name, args.json_filename)
     reactor.run()
