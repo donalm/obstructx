@@ -6,7 +6,7 @@ bindir_abs=`cd $bindir && pwd`
 export BASEDIR=`dirname $bindir_abs`
 tacname=$BASEDIR/tac/web.tac
 
-export PYTHONPATH="$BASEDIR/lib/python"
+export PYTHONPATH="$BASEDIR"
 export PYTHONDONTWRITEBYTECODE=1
 
 

@@ -9,7 +9,7 @@ bindir_abs=`cd $bindir && pwd`
 basedir=`dirname $bindir_abs`
 scriptname=`basename $0`
 
-export PYTHONPATH="$basedir/lib/python"
+export PYTHONPATH="$basedir"
 export PYTHONDONTWRITEBYTECODE=1
 
 

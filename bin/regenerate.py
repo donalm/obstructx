@@ -4,7 +4,7 @@ basedir = "/home/donal/Geek/obstructx"
 
 import os
 import sys
-sys.path.insert(0, os.path.join(basedir, "lib/python"))
+sys.path.insert(0, basedir)
 
 from obstructx import inspect
 # print inspect.queries.keys()
