@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+bootstrap_script=${(%):-%N}
+bindir=`dirname $bootstrap_script`
+bindir_abs=`cd $bindir && pwd`
+export BASEDIR=`dirname $bindir_abs`
+tacname=$BASEDIR/tac/web.tac
+
+export PYTHONPATH="$BASEDIR/lib/python"
+export PYTHONDONTWRITEBYTECODE=1
+
+
+exec /usr/local/bin/twistd -noy $tacname
