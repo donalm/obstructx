@@ -93,6 +93,9 @@ class Inquisitor(DbMethods):
         for result in results:
             leader = result.column_names[0]
             Inquisitor.data[self.database_name][result.table_name]["fields"][leader]["leads_index"] = True
+            Inquisitor.data[self.database_name][result.table_name]["indices"][result.index_name] = {"fields": result.column_names, "unique":result.unique}
+            if len(result.column_names) == 1 and result.unique:
+                Inquisitor.data[self.database_name][result.table_name]["fields"][leader]["unique"] = True
 
     def get_foreign_keys(self, table, *args):
         logger.error("get_foreign_keys")
@@ -104,7 +107,10 @@ class Inquisitor(DbMethods):
     def parse_foreign_keys(self, results, table_name):
         for result in results:
             Inquisitor.data[result.database_name][result.table_name]["fields"][result.column_name]["references_foreign_key"] = (result.foreign_table_name, result.foreign_column_name,)
-            Inquisitor.data[result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"] = (result.table_name, result.column_name,)
+            try:
+                Inquisitor.data[result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"].append((result.table_name, result.column_name,))
+            except Exception, e:
+                Inquisitor.data[result.database_name][result.foreign_table_name]["fields"][result.foreign_column_name]["referenced_by_foreign_key"] = [(result.table_name, result.column_name,)]
         return table_name
 
     def show_result(self, result):
