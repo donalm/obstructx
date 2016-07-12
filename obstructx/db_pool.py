@@ -31,7 +31,7 @@ from twisted.internet import reactor, task, defer
 
 def get_database_credentials(database_name):
     filepath = getModule(__name__).filePath
-    basedir = filepath.parent().parent().parent().parent()
+    basedir = filepath.parent().parent()
     return json.loads(basedir.child("etc").child("database_credentials_%s.json" % (database_name,)).getContent())
 
 
